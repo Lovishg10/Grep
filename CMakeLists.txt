@@ -15,10 +15,10 @@ add_compile_options(-Wall -Wextra -Wpedantic -Werror -std=c++20)
 # This forces you to fix every single warning before you can run.
 # add_compile_options(-Werror)
 
-add_executable(main main.cpp)
+add_executable(main main.cpp handleInput.cpp)
 
 # "Hey CMake, for the target 'main'..."
 # "...PRIVATELY (just for itself)..."
 # "...add the directory 'include' to its search path."
 
-target_include_directories(main PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(main  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")

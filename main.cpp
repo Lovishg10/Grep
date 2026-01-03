@@ -1,5 +1,7 @@
 #include <iostream>
+#include <stdexcept>
 #include <string_view>
+#include <handleInput.h>
 
 /*
     for grep 
@@ -8,21 +10,33 @@
     3. file reading and parsing
     4. output based on parsing
 */
-
-int main (int argc, const char* const argv[])
+void parseInput(int argc, const char* argv[])
 {
-    if (argc <= 1)
+    for (int i = 0; i < argc; ++i)
     {
-        std::cerr << "No arguments given.\n";
-    }
-
-    for (int i = 1; i < argc ; ++i)
-    {
-        std::string_view arg {argv[i]};
         
-        std::cout << "arg["<< i << "] = " << arg << '\n';
     }
+}
 
+int main (int argc, const char*  argv[])
+{
+    
+    try
+    { // throws std::runtime exception if less than 3 arguments
+        checkArguments(argc);
+
+        parseInput(argc, argv);
+
+    }
+    catch(const std::exception& e)
+    {
+        printDashes();
+        std::cerr << "\n\nError: " << e.what() << "\n";
+        printSyntax();
+        return 1;
+    }
+    
+    // after this I must parse the input 
 
     return 0;
 }
