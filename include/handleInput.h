@@ -3,16 +3,27 @@
 
 #include <string_view>
 
-inline int dashCount = 69;
-inline std::string_view syntaxCLI = "./main <arguments> <Filenames>\n";
 
-/*
-    for grep 
-    1. taking argument input
-    2. parsing input
-    3. file reading and parsing
-    4. output based on parsing
-*/
+
+struct GrepSettings
+{
+    bool caseInsesitive = false;
+    bool recursive = false;
+
+
+    std::string_view pattern = "";
+    std::vector<std::string> fileNames;
+};
+
+GrepSettings parseInput(int argc, const char* argv[]);
+
+namespace Input
+{
+    inline bool lessArgs = false;
+    inline short int minArgs = 3;
+    inline short int dashCount = 50;
+    inline std::string_view syntaxCLI = "./main <arguments> <Finding Keyword> <Filenames>\n";
+}
 
 void checkArguments(int);
 void printDashes();
