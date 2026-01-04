@@ -19,9 +19,9 @@ GrepSettings parseInput(int argc, const char* argv[]);
 
 namespace Input
 {
-    inline bool lessArgs = false;
+    // inline bool lessArgs = false;
     inline short int minArgs = 3;
-    inline short int dashCount = 50;
+    inline short int dashCount = 69;
     inline std::string_view syntaxCLI = "./main <arguments> <Finding Keyword> <Filenames>\n";
 }
 

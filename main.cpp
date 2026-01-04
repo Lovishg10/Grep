@@ -1,8 +1,12 @@
 #include <iostream>
 #include <stdexcept>
 #include <string_view>
-#include <handleInput.h>
 #include <vector>
+
+
+// User-Made
+#include <handleInput.h>
+#include <grepEngine.h>
 
 /*
     for grep 
@@ -25,9 +29,24 @@ int main (int argc, const char*  argv[])
     catch(const std::exception& e)
     {
         printDashes();
-        std::cerr << "\n\nError: " << e.what() << "\n";
+        std::cerr << "Error: " << e.what() << '\n';
         
         printSyntax();
+        return 1;
+    }
+
+    GrepEngine runtimeEngine;
+    
+    try 
+    {
+        runtimeEngine.execute(settings);
+    }
+    catch(const std::exception& e)
+    {
+        printDashes();
+        std::cerr << "\n\nError: " << e.what() << "\n\n";
+        
+        printDashes();
         return 1;
     }
 

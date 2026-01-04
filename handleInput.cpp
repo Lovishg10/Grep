@@ -39,20 +39,13 @@ GrepSettings parseInput(int argc, const char* argv[])
     return settings;
 }
 
-
-
 void checkArguments(int argc = 0)
 {
     if (argc < Input::minArgs)
     {
-        Input::lessArgs = true;
+        // Input::lessArgs = true;
         throw std::runtime_error ("Less Arguments than expected");        
     }
-}
-
-inline void printDashes()
-{
-    std::cout << '\n' << std::string(Input::dashCount, '-') << '\n';
 }
 
 void printSyntax()
@@ -60,4 +53,9 @@ void printSyntax()
     std::cerr << "\nSyntax for Command Line Arguments\n";
     std::cout << Input::syntaxCLI << '\n';
     printDashes();
+}
+
+inline void printDashes()
+{
+    std::cout << "\n" << std::string(Input::dashCount, '-') << "\n\n";
 }
