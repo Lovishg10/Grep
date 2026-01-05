@@ -23,6 +23,8 @@
 /*
     Inside execute , find 
 */
+size_t GrepEngine::lengthPrint = 20;
+
 
 // friend function for class GrepEngine
 void changeLength(std::string& temp)
@@ -37,7 +39,6 @@ void changeLength(std::string& temp)
     }
 }
 
-size_t GrepEngine::lengthPrint = 10;
 
 void GrepEngine::execute(const GrepSettings& settings)
 {
@@ -59,33 +60,45 @@ void GrepEngine::processFile(const std::string& file, const GrepSettings& settin
 
     std::string line;
     long long int lineNumber = 0;
-    size_t printDepth = 20;
 
     while (std::getline(fileStream, line))
     {
         ++lineNumber;
-
-        size_t foundPos = line.find(settings.pattern);
+        size_t foundPos = line.find(settings.pattern) ;
 
         if (foundPos != std::string::npos) 
         {
+            size_t lineLength = line.length();
             // Check if line is HUGE (e.g., > 300 chars)
-            if (line.length() > GrepEngine::lengthPrint) 
-            {
-                // Calculate safe start/end points
-                // Use 'long long' to allow negative math, then cast back
-                size_t start = (foundPos) - printDepth;
-                size_t end = (foundPos) + settings.pattern.length() + printDepth;
+            if (lineLength > GrepEngine::lengthPrint) 
+             {
+            //     // Calculate safe start/end points
+            //     // Use 'long long' to allow negative math, then cast back 
+                size_t start;
+                size_t end = (foundPos) + settings.pattern.length() + GrepEngine::lengthPrint;
+                
+            //     // Clamp to boundaries so we don't crash
+                if (static_cast<long long int>(foundPos) - static_cast<long long int>(GrepEngine::lengthPrint) < 0) 
+                {
+                    start = 0;   
+                }
+                else 
+                    start = foundPos - GrepEngine::lengthPrint;
 
-                // Clamp to boundaries so we don't crash
-                if (start < 0) start = 0;
-                if (end > line.length()) end = line.length();
+                if (end > lineLength) 
+                {
+                    end = lineLength;
+                    // std::cout << "END WAS GREATER THAN LENGTH";
+                }
+                
+                 
 
+                // std::cout << end << ' ' << start;
                 printDashes();
                 std::cout << file << ": " << lineNumber << ": ... " 
                         << line.substr(start, end - start) << " ...\n";
                 printDashes();
-            } 
+            }
             else 
             {
                 // Normal short line, just print it all
