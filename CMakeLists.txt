@@ -8,12 +8,17 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF) 
 
-# 1. Enable high warnings
-#add_compile_options(-Wall -Wextra -Wpedantic -Werror -std=c++20)
-
-# 2. (Optional but Recommended) Treat warnings as errors.
-# This forces you to fix every single warning before you can run.
-# add_compile_options(-Werror)
+# Fix for cross-platform working
+if(MSVC)
+    # Windows/MSVC specific flags
+    # /W4 = High warning level (similar to -Wall -Wextra)
+    # /WX = Treat warnings as errors (same as -Werror)
+    # /std:c++20 = Use C++20 standard
+    add_compile_options(/W4 /WX /std:c++20)
+else()
+    # Linux/Mac (GCC/Clang) specific flags
+    add_compile_options(-Wall -Wextra -Wpedantic -Werror -std=c++20)
+endif()
 
 add_executable(main main.cpp handleInput.cpp grepEngine.cpp)
 
