@@ -44,7 +44,7 @@ int main (int argc, const char*  argv[])
     catch(const std::exception& e)
     {
         printDashes();
-        std::cerr << "\n\n2nd Error: " << e.what() << "\n\n";
+        std::cerr << "\n\nError: " << e.what() << "\n\n";
         
         printDashes();
         return 1;
@@ -52,9 +52,10 @@ int main (int argc, const char*  argv[])
     catch(...)
     {
         printDashes();
-        std::cerr << "\nAnything Error: "  << "\n\n";
+        std::cerr << "\nUnexpected Error"  << "\n\n";
         
         printDashes();
+        return 1;
     }
 
     return 0;   

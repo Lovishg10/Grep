@@ -3,10 +3,12 @@
 #include <string_view>
 #include <stdexcept>
 #include <fstream>
+#include <filesystem>
 
 // USER DEFINED
 #include <handleInput.h>
 #include <grepEngine.h>
+
 /*  what to do
 
     I have flag as bool values
@@ -23,6 +25,8 @@
 /*
     Inside execute , find 
 */
+
+namespace fs = std::filesystem; // to use std::filesystem::path
 size_t GrepEngine::lengthPrint = 20;
 
 
@@ -35,22 +39,37 @@ void changeLength(std::string& temp)
 
         temp.erase(GrepEngine::lengthPrint, temp.length());
 
-        
     }
 }
 
 
 void GrepEngine::execute(const GrepSettings& settings)
 {
+    // changing the current dicrectory to its parent to easily access demo.txt files
+    try 
+    {
+        fs::current_path("../Demo_Files");
+        std::cout << "Changed to parent directory: " << fs::current_path() << std::endl;
+    } catch (fs::filesystem_error const& ex) 
+    {
+        std::cerr << "Error changing directory: " << ex.what() << std::endl;
+        std::exit(1);
+    }
+
     for (const auto& file: settings.fileNames)
     {
         processFile(file, settings);
     }
+
+
     std::cout << std::endl;
 }
 
+
+
 void GrepEngine::processFile(const std::string& file, const GrepSettings& settings)
 {
+    // std::filesystem::path alias for fs::path
     std::ifstream fileStream(file);
 
     if (!fileStream.is_open()) 
