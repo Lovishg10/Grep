@@ -2,7 +2,7 @@
 #define INPUT_HEADER
 
 #include <string_view>
-
+#include <vector>
 
 
 struct GrepSettings

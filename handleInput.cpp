@@ -56,7 +56,7 @@ void printSyntax()
     printDashes();
 }
 
-inline void printDashes()
+void printDashes()
 {
     std::cout << "\n" << std::string(Input::dashCount, '-') << "\n\n";
 }
