@@ -63,7 +63,7 @@ void GrepEngine::execute(const GrepSettings& settings)
                         if (fileNamePart == searchFile)
                         {
                             std::cout << entry.path() << std::endl;
-                            processFile(entry.path(), settings);
+                            processFile(entry.path().string(), settings);
                         }
                         //processFile(file, settings);
                     }
