@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <fstream>
 #include <filesystem>
+#include <algorithm>
 
 // USER DEFINED
 #include <handleInput.h>
