@@ -46,35 +46,73 @@ void changeLength(std::string& temp)
 
 void GrepEngine::execute(const GrepSettings& settings)
 {
-    try 
+    if (settings.recursive)
     {
-        // changing the current dicrectory to its parent to easily access demo.txt files
-        // Check if folder exists in current dir first, if not, try parent
-        if (fs::exists("Demo_Files")) 
+         try 
+         {
+            // Use recursive_directory_iterator for automatic recursion
+            for (const auto& entry : fs::recursive_directory_iterator(fs::current_path())) 
+            {   
+            // The entry object has useful methods like is_regular_file(), path(), etc.
+                if (fs::is_regular_file(entry.status())) 
+                {
+                    for (const auto& searchFile: settings.fileNames)
+                    {
+                        auto fileNamePart = entry.path().filename();
+                        
+                        if (fileNamePart == searchFile)
+                        {
+                            std::cout << entry.path() << std::endl;
+                            processFile(entry.path(), settings);
+                        }
+                        //processFile(file, settings);
+                    }
+                    
+                    
+                    // std::cout << "File: " << entry.path().string() << std::endl;
+                    
+                } 
+            }
+        } 
+        catch (const fs::filesystem_error& e) 
         {
-            fs::current_path("Demo_Files");
-
-        } else if (fs::exists(fs::path("..") / "Demo_Files")) 
-        {
-            fs::current_path(fs::path("..") / "Demo_Files");
+            std::cerr << "Filesystem error: " << e.what() << std::endl;
         }
 
-        fs::current_path(fs::path("..") / "Demo_Files");
-        std::cout << "Changed to parent directory: " << fs::current_path() << std::endl;
-
-    } catch (fs::filesystem_error const& ex) 
-    {
-        std::cerr << "Error changing directory: " << ex.what() << std::endl;
-        std::exit(1);
     }
-
-    for (const auto& file: settings.fileNames)
+    else
     {
-        processFile(file, settings);
-    }
 
+        try 
+        {
+            // changing the current dicrectory to its parent to easily access demo.txt files
+            // Check if folder exists in current dir first, if not, try parent
+            if (fs::exists("Demo_Files")) 
+            {
+                fs::current_path("Demo_Files");
+    
+            } else if (fs::exists(fs::path("..") / "Demo_Files")) 
+            {
+                fs::current_path(fs::path("..") / "Demo_Files");
+            }
+    
+            fs::current_path(fs::path("..") / "Demo_Files");
+            std::cout << "Changed to parent directory: " << fs::current_path() << std::endl;
+    
+        } catch (fs::filesystem_error const& ex) 
+        {
+            std::cerr << "Error changing directory: " << ex.what() << std::endl;
+            std::exit(1);
+        }
+    
+        for (const auto& file: settings.fileNames)
+        {
+            processFile(file, settings);
+        }
 
-    std::cout << std::endl;
+    }    
+
+    std::cout << '\n';
 }
 
 bool caseInsensitiveCharCompare(unsigned char ch1, unsigned char ch2) {
@@ -95,7 +133,7 @@ void GrepEngine::processFile(const std::string& file, const GrepSettings& settin
 {
     // std::filesystem::path alias for fs::path
     std::ifstream fileStream(file);
-
+    
     if (!fileStream.is_open()) 
     {
         throw std::runtime_error ("File - " + file + " not found.");
