@@ -33,7 +33,7 @@ size_t GrepEngine::lengthPrint = 20;
 // friend function for class GrepEngine
 void changeLength(std::string& temp)
 {
-    if (temp.length() < GrepEngine::lengthPrint)
+    if (temp.length() > GrepEngine::lengthPrint)
     {
         std::cout << "INITIATED";
 
@@ -45,11 +45,22 @@ void changeLength(std::string& temp)
 
 void GrepEngine::execute(const GrepSettings& settings)
 {
-    // changing the current dicrectory to its parent to easily access demo.txt files
     try 
     {
-        fs::current_path("../Demo_Files");
+        // changing the current dicrectory to its parent to easily access demo.txt files
+        // Check if folder exists in current dir first, if not, try parent
+        if (fs::exists("Demo_Files")) 
+        {
+            fs::current_path("Demo_Files");
+
+        } else if (fs::exists(fs::path("..") / "Demo_Files")) 
+        {
+            fs::current_path(fs::path("..") / "Demo_Files");
+        }
+
+        fs::current_path(fs::path("..") / "Demo_Files");
         std::cout << "Changed to parent directory: " << fs::current_path() << std::endl;
+
     } catch (fs::filesystem_error const& ex) 
     {
         std::cerr << "Error changing directory: " << ex.what() << std::endl;
@@ -83,47 +94,56 @@ void GrepEngine::processFile(const std::string& file, const GrepSettings& settin
     while (std::getline(fileStream, line))
     {
         ++lineNumber;
-        size_t foundPos = line.find(settings.pattern) ;
 
-        if (foundPos != std::string::npos) 
+        if (settings.caseInsesitive)
         {
-            size_t lineLength = line.length();
-            // Check if line is HUGE (e.g., > 300 chars)
-            if (lineLength > GrepEngine::lengthPrint) 
-             {
-            //     // Calculate safe start/end points
-            //     // Use 'long long' to allow negative math, then cast back 
-                size_t start;
-                size_t end = (foundPos) + settings.pattern.length() + GrepEngine::lengthPrint;
-                
-            //     // Clamp to boundaries so we don't crash
-                if (static_cast<long long int>(foundPos) - static_cast<long long int>(GrepEngine::lengthPrint) < 0) 
+            // doing it 
+        }
+        else // case-sensitive easy 
+        {
+            size_t foundPos = line.find(settings.pattern) ;
+
+            if (foundPos != std::string::npos) 
+            {
+                size_t lineLength = line.length();
+                // Check if line is HUGE (e.g., > 300 chars)
+                if (lineLength > GrepEngine::lengthPrint) 
                 {
-                    start = 0;   
+                //     // Calculate safe start/end points
+                //     // Use 'long long' to allow negative math, then cast back 
+                    size_t start;
+                    size_t end = (foundPos) + settings.pattern.length() + GrepEngine::lengthPrint;
+                    
+                //     // Clamp to boundaries so we don't crash
+                    if (static_cast<long long int>(foundPos) - static_cast<long long int>(GrepEngine::lengthPrint) < 0) 
+                    {
+                        start = 0;   
+                    }
+                    else 
+                        start = foundPos - GrepEngine::lengthPrint;
+
+                    if (end > lineLength) 
+                    {
+                        end = lineLength;
+                        // std::cout << "END WAS GREATER THAN LENGTH";
+                    }
+                    
+                    
+
+                    // std::cout << end << ' ' << start;
+                    printDashes();
+                    std::cout << file << ": " << lineNumber << ": ... " 
+                            << line.substr(start, end - start) << " ...\n";
+                    printDashes();
                 }
                 else 
-                    start = foundPos - GrepEngine::lengthPrint;
-
-                if (end > lineLength) 
                 {
-                    end = lineLength;
-                    // std::cout << "END WAS GREATER THAN LENGTH";
+                    // Normal short line, just print it all
+                    std::cout << file << ":" << lineNumber << ": " << line << "\n";
                 }
-                
-                 
-
-                // std::cout << end << ' ' << start;
-                printDashes();
-                std::cout << file << ": " << lineNumber << ": ... " 
-                        << line.substr(start, end - start) << " ...\n";
-                printDashes();
-            }
-            else 
-            {
-                // Normal short line, just print it all
-                std::cout << file << ":" << lineNumber << ": " << line << "\n";
             }
         }
+        
     }
 }
 
