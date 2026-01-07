@@ -76,7 +76,19 @@ void GrepEngine::execute(const GrepSettings& settings)
     std::cout << std::endl;
 }
 
+bool caseInsensitiveCharCompare(unsigned char ch1, unsigned char ch2) {
+    return std::toupper(ch1) == std::toupper(ch2);
+    // Note: For full Unicode support, you would need a more robust solution 
+    // using std::locale or a library like ICU.
+}
 
+std::string::iterator findCaseInsensitive(std::string& haystack, const std::string& needle) {
+    auto it = std::search(
+        haystack.begin(), haystack.end(),
+        needle.begin(), needle.end(),
+        caseInsensitiveCharCompare);
+    return it;
+}
 
 void GrepEngine::processFile(const std::string& file, const GrepSettings& settings)
 {
@@ -98,6 +110,43 @@ void GrepEngine::processFile(const std::string& file, const GrepSettings& settin
         if (settings.caseInsesitive)
         {
             // doing it 
+            auto position = search(line.begin(), line.end(), settings.pattern.begin(),settings.pattern.end(), caseInsensitiveCharCompare);
+
+            if (position != line.end())
+            {
+                size_t lineLength = line.length();
+                // Check if line is HUGE (e.g., > 300 chars)
+                if (lineLength > GrepEngine::lengthPrint) 
+                {
+                    size_t foundPos = std::distance(line.begin(), position);
+                //     // Calculate safe start/end points
+                //     // Use 'long long' to allow negative math, then cast back 
+                    size_t start;
+                    size_t end = (foundPos) + settings.pattern.length() + GrepEngine::lengthPrint;
+                    
+                //     // Clamp to boundaries so we don't crash
+                    if (static_cast<long long int>(foundPos) - static_cast<long long int>(GrepEngine::lengthPrint) < 0) 
+                    {
+                        start = 0;   
+                    }
+                    else 
+                        start = foundPos - GrepEngine::lengthPrint;
+
+                    if (end > lineLength) 
+                    {
+                        end = lineLength;
+                        // std::cout << "END WAS GREATER THAN LENGTH";
+                    }
+                    
+                    
+
+                    // std::cout << end << ' ' << start;
+                    printDashes();
+                    std::cout << file << ": " << lineNumber << ": ... " 
+                            << line.substr(start, end - start) << " ...\n";
+                    printDashes();
+                }
+            }
         }
         else // case-sensitive easy 
         {
@@ -128,7 +177,7 @@ void GrepEngine::processFile(const std::string& file, const GrepSettings& settin
                         // std::cout << "END WAS GREATER THAN LENGTH";
                     }
                     
-                    
+                
 
                     // std::cout << end << ' ' << start;
                     printDashes();
@@ -141,6 +190,7 @@ void GrepEngine::processFile(const std::string& file, const GrepSettings& settin
                     // Normal short line, just print it all
                     std::cout << file << ":" << lineNumber << ": " << line << "\n";
                 }
+                
             }
         }
         

@@ -34,7 +34,15 @@ int main (int argc, const char*  argv[])
         printSyntax();
         return 1;
     }
-
+    catch(...)
+    {
+        printDashes();
+        std::cerr << "\nUnexpected Error"  << "\n\n";
+        
+        printDashes();
+        return 1;
+    }
+    
     GrepEngine runtimeEngine;
     
     try 
