@@ -18,5 +18,4 @@ class GrepEngine
         friend void changeLength(std::string& temp);
 };
 
-
 #endif
