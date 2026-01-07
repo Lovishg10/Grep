@@ -33,7 +33,7 @@ size_t GrepEngine::lengthPrint = 20;
 // friend function for class GrepEngine
 void changeLength(std::string& temp)
 {
-    if (temp.length() >= 0 && temp.length() < GrepEngine::lengthPrint)
+    if (temp.length() < GrepEngine::lengthPrint)
     {
         std::cout << "INITIATED";
 
