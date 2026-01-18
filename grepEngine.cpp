@@ -5,30 +5,39 @@
 #include <fstream>
 #include <filesystem>
 #include <algorithm>
-
+#include <thread>
+#include <mutex>
 // USER DEFINED
 #include <handleInput.h>
 #include <grepEngine.h>
 
-/*  what to do
-
-    I have flag as bool values
-    I have fileNames
-    I have the pattern
-
-    * so I have to first open the file 
-    # --IMPLEMENTATION--
-
-    I make a class with GrepEngine 
-*/
 
 
-/*
-    Inside execute , find 
-*/
+#include <thread>
+#include <algorithm> // For std::max
 
+std::mutex handleThread;
 namespace fs = std::filesystem; // to use std::filesystem::path
 size_t GrepEngine::lengthPrint = 20;
+
+
+unsigned int getOptimalThreadCount() {
+    // 1. Get the hint from the OS
+    unsigned int threads = std::thread::hardware_concurrency();
+
+    // 2. Handle the "0" error case
+    // If the OS fails to report, default to 2 (safe minimum)
+    if (threads == 0) {
+        threads = 2;
+    }
+
+
+    threads = std::min(threads, 32u);
+
+    return threads;
+}
+
+
 
 
 // friend function for class GrepEngine
@@ -36,7 +45,7 @@ void changeLength(std::string& temp)
 {
     if (temp.length() > GrepEngine::lengthPrint)
     {
-        std::cout << "INITIATED";
+        // std::cout << "INITIATED";
 
         temp.erase(GrepEngine::lengthPrint, temp.length());
 
@@ -46,6 +55,12 @@ void changeLength(std::string& temp)
 
 void GrepEngine::execute(const GrepSettings& settings)
 {
+    unsigned int threadCount = getOptimalThreadCount();
+    size_t totalFiles = settings.fileNames.size();
+
+    if (threadCount > totalFiles) threadCount = totalFiles;
+    size_t chunkSize = totalFiles / threadCount;
+
     if (settings.recursive)
     {
          try 
@@ -129,6 +144,11 @@ std::string::iterator findCaseInsensitive(std::string& haystack, const std::stri
     return it;
 }
 
+void safePrint(const std::string_view message) {
+    std::lock_guard<std::mutex> lock(handleThread);
+    std::cout << message;
+}
+
 void GrepEngine::processFile(const std::string& file, const GrepSettings& settings)
 {
     // std::filesystem::path alias for fs::path
@@ -138,6 +158,8 @@ void GrepEngine::processFile(const std::string& file, const GrepSettings& settin
     {
         throw std::runtime_error ("File - " + file + " not found.");
     }
+
+    
 
     std::string line;
     long long int lineNumber = 0;
@@ -181,8 +203,12 @@ void GrepEngine::processFile(const std::string& file, const GrepSettings& settin
 
                     // std::cout << end << ' ' << start;
                     printDashes();
-                    std::cout << file << ": " << lineNumber << ": ... " 
-                            << line.substr(start, end - start) << " ...\n";
+
+                    std::string message{file + ": " + std::to_string(lineNumber) + ": ..." + line.substr(start, end - start) + " ...\n"};
+
+                    safePrint(message);
+                    // std::cout << file << ": " << lineNumber << ": ... " 
+                            // << line.substr(start, end - start) << " ...\n";
                     printDashes();
                 }
             }
@@ -220,8 +246,12 @@ void GrepEngine::processFile(const std::string& file, const GrepSettings& settin
 
                     // std::cout << end << ' ' << start;
                     printDashes();
-                    std::cout << file << ": " << lineNumber << ": ... " 
-                            << line.substr(start, end - start) << " ...\n";
+                    
+                    std::string message{file + ": " + std::to_string(lineNumber) + ": ..." + line.substr(start, end - start) + " ...\n"};
+
+                    safePrint(message);
+                    // std::cout << file << ": " << lineNumber << ": ... " 
+                    //         << line.substr(start, end - start) << " ...\n";
                     printDashes();
                 }
                 else 
