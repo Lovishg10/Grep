@@ -67,7 +67,7 @@ The project leverages modern standards including:
 The syntax follows standard command-line conventions:
 
 ```bash
-./mygrep [options] <pattern" <files...>
+./mygrep [options] "pattern" <files...>
 ```
 
 ## ⚠️ A Note on Code Quality
