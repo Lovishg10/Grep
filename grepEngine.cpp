@@ -77,10 +77,6 @@ void GrepEngine::execute(const GrepSettings& settings)
     
     if (settings.recursive)
     {
-        unsigned int maxThreads = std::thread::hardware_concurrency();
-        if (maxThreads == 0) maxThreads = 2; // Safety fallback
-
-        std::vector<std::thread> workers; // This holds your active threads 
         try 
         {
              
