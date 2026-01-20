@@ -297,7 +297,7 @@ void GrepEngine::processFile(const std::string& file, const GrepSettings& settin
                 else 
                 {
                     // Normal short line, just print it all
-                    std::cout << file << ":" << lineNumber << ": " << line << "\n";
+                    safePrint( file + ":" + std::to_string(lineNumber) + ": " + line + "\n");
                 }
                 
             }
