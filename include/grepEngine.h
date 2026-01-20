@@ -14,7 +14,10 @@ class GrepEngine
 
     private:
         void processFile(const std::string& fileName, const GrepSettings& settings);
-
+        void grepWorker(const std::vector<std::string>& allFiles, 
+                    size_t start, 
+                    size_t end, 
+                    const GrepSettings& settings);
         friend void changeLength(std::string& temp);
 };
 

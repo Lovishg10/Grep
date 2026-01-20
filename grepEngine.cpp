@@ -22,7 +22,7 @@ size_t GrepEngine::lengthPrint = 20;
 
 
 unsigned int getOptimalThreadCount() {
-    // 1. Get the hint from the OS
+    
     unsigned int threads = std::thread::hardware_concurrency();
 
     // 2. Handle the "0" error case
@@ -52,15 +52,25 @@ void changeLength(std::string& temp)
     }
 }
 
+void GrepEngine::grepWorker(const std::vector<std::string>& allFiles, 
+                            size_t start, 
+                            size_t end, 
+                            const GrepSettings& settings) 
+{
+    
+    for (size_t i = start; i < end; ++i) {
+        
+        // Grab the filename at this index
+        const std::string& currentFile = allFiles[i];
+
+        // Do the actual search work
+        processFile(currentFile, settings);
+    }
+}
 
 void GrepEngine::execute(const GrepSettings& settings)
 {
-    unsigned int threadCount = getOptimalThreadCount();
-    size_t totalFiles = settings.fileNames.size();
-
-    if (threadCount > totalFiles) threadCount = totalFiles;
-    size_t chunkSize = totalFiles / threadCount;
-
+    
     if (settings.recursive)
     {
          try 
@@ -73,11 +83,14 @@ void GrepEngine::execute(const GrepSettings& settings)
                 {
                     for (const auto& searchFile: settings.fileNames)
                     {
+
                         auto fileNamePart = entry.path().filename();
                         
                         if (fileNamePart == searchFile)
                         {
                             std::cout << entry.path() << std::endl;
+
+                            
                             processFile(entry.path().string(), settings);
                         }
                         //processFile(file, settings);
@@ -97,7 +110,6 @@ void GrepEngine::execute(const GrepSettings& settings)
     }
     else
     {
-
         try 
         {
             // changing the current dicrectory to its parent to easily access demo.txt files
@@ -119,10 +131,37 @@ void GrepEngine::execute(const GrepSettings& settings)
             std::cerr << "Error changing directory: " << ex.what() << std::endl;
             std::exit(1);
         }
-    
-        for (const auto& file: settings.fileNames)
+
+        const auto& files = settings.fileNames;
+
+        size_t totalFiles = settings.fileNames.size();
+
+        unsigned int threadCount = getOptimalThreadCount();
+        if (threadCount > totalFiles) threadCount = totalFiles;
+        
+        std::vector<std::thread> workers;
+        size_t chunkSize = totalFiles / threadCount;
+
+        for (unsigned int i = 0; i < threadCount; ++i) {
+            size_t start = i * chunkSize;
+            size_t end = start + chunkSize;
+
+            // CRITICAL: The last thread must take "everything remaining"
+            // to handle the remainder of the division.
+            if (i == threadCount - 1) 
+            {
+                end = totalFiles;
+            }
+
+            // Launch the thread
+            // We pass 'this' if processFile is a member function
+            workers.emplace_back(&GrepEngine::grepWorker, this, std::cref(files), start, end, std::cref(settings));
+        }
+
+        // 5. Wait for everyone to finish
+        for (auto& t : workers) 
         {
-            processFile(file, settings);
+            if (t.joinable()) t.join();
         }
 
     }    
@@ -132,8 +171,7 @@ void GrepEngine::execute(const GrepSettings& settings)
 
 bool caseInsensitiveCharCompare(unsigned char ch1, unsigned char ch2) {
     return std::toupper(ch1) == std::toupper(ch2);
-    // Note: For full Unicode support, you would need a more robust solution 
-    // using std::locale or a library like ICU.
+
 }
 
 std::string::iterator findCaseInsensitive(std::string& haystack, const std::string& needle) {
