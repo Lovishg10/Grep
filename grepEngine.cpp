@@ -77,35 +77,54 @@ void GrepEngine::execute(const GrepSettings& settings)
     
     if (settings.recursive)
     {
-         try 
-         {
+        unsigned int maxThreads = std::thread::hardware_concurrency();
+        if (maxThreads == 0) maxThreads = 2; // Safety fallback
+
+        std::vector<std::thread> workers; // This holds your active threads 
+        try 
+        {
              
-             // Use recursive_directory_iterator for automatic recursion
-             for ([[maybe_unused]]const auto& entry : fs::recursive_directory_iterator(fs::current_path())) 
-             {   
-            // The entry object has useful methods like is_regular_file(), path(), etc.
-                if (fs::is_regular_file(entry.status())) 
-                {
-                    for (const auto& searchFile: settings.fileNames)
-                    {
+            // Use recursive_directory_iterator for automatic recursion
+            std::vector<std::string> discoveredFiles;
 
-                        auto fileNamePart = entry.path().filename();
-                        
-                        if (fileNamePart == searchFile)
-                        {
-                            std::cout << entry.path() << std::endl;
-
-                            
-                            processFile(entry.path().string(), settings);
+            // Fast loop: Just find paths
+            for (const auto& entry : fs::recursive_directory_iterator(fs::current_path())) {
+                if (fs::is_regular_file(entry.status())) {
+                    std::string filename = entry.path().filename().string();
+                    
+                    // Check if this is a file we need to search
+                    for (const auto& searchName : settings.fileNames) {
+                        if (filename == searchName) {
+                            discoveredFiles.push_back(entry.path().string());
+                            break; 
                         }
-                        //processFile(file, settings);
                     }
-                    
-                    
-                    // std::cout << "File: " << entry.path().string() << std::endl;
-                    
-                } 
+                }
             }
+
+            size_t totalFiles = discoveredFiles.size();
+            unsigned int threadCount = std::thread::hardware_concurrency(); 
+            size_t chunkSize = totalFiles/static_cast<size_t>(threadCount);
+            
+
+            std::vector<std::thread> workers;
+            for (unsigned int i = 0; i < threadCount; ++i) {
+                size_t start = i * chunkSize;
+                size_t end = (i == threadCount - 1) ? totalFiles : start + chunkSize;
+
+                // Pass the SUBSET of the vector to the thread
+                workers.emplace_back(
+                    &GrepEngine::grepWorker, 
+                    this, 
+                    std::cref(discoveredFiles), // Pass the big list
+                    start, 
+                    end, 
+                    std::cref(settings)
+                );
+            }
+
+            // Join all
+            for (auto& t : workers) t.join();
         } 
         catch (const fs::filesystem_error& e) 
         {
