@@ -46,12 +46,16 @@ void changeLength(std::string& temp)
     if (temp.length() > GrepEngine::lengthPrint)
     {
         // std::cout << "INITIATED";
-
+        
         temp.erase(GrepEngine::lengthPrint, temp.length());
-
+        
     }
 }
 
+void safePrint(const std::string_view message) {
+    std::lock_guard<std::mutex> lock(handleThread);
+    std::cout << message;
+}
 void GrepEngine::grepWorker(const std::vector<std::string>& allFiles, 
                             size_t start, 
                             size_t end, 
@@ -75,9 +79,10 @@ void GrepEngine::execute(const GrepSettings& settings)
     {
          try 
          {
-            // Use recursive_directory_iterator for automatic recursion
-            for (const auto& entry : fs::recursive_directory_iterator(fs::current_path())) 
-            {   
+             
+             // Use recursive_directory_iterator for automatic recursion
+             for ([[maybe_unused]]const auto& entry : fs::recursive_directory_iterator(fs::current_path())) 
+             {   
             // The entry object has useful methods like is_regular_file(), path(), etc.
                 if (fs::is_regular_file(entry.status())) 
                 {
@@ -124,7 +129,8 @@ void GrepEngine::execute(const GrepSettings& settings)
             }
     
             fs::current_path(fs::path("..") / "Demo_Files");
-            std::cout << "Changed to parent directory: " << fs::current_path() << std::endl;
+            safePrint("Changed to parent directory: " + fs::current_path().string() + "\n");
+            // std::cout << "Changed to parent directory: " << fs::current_path() << std::endl;
     
         } catch (fs::filesystem_error const& ex) 
         {
@@ -166,7 +172,7 @@ void GrepEngine::execute(const GrepSettings& settings)
 
     }    
 
-    std::cout << '\n';
+    safePrint("\n");
 }
 
 bool caseInsensitiveCharCompare(unsigned char ch1, unsigned char ch2) {
@@ -182,20 +188,24 @@ std::string::iterator findCaseInsensitive(std::string& haystack, const std::stri
     return it;
 }
 
-void safePrint(const std::string_view message) {
-    std::lock_guard<std::mutex> lock(handleThread);
-    std::cout << message;
-}
-
+// here file can actually be a path of file also (in case of recursive search)
 void GrepEngine::processFile(const std::string& file, const GrepSettings& settings)
 {
     // std::filesystem::path alias for fs::path
     std::ifstream fileStream(file);
     
+    // !settings.recursive make sure that if search is recursive, its fine we donot find the file there
     if (!fileStream.is_open()) 
     {
-        throw std::runtime_error ("File - " + file + " not found.");
+        if (settings.recursive)
+        {
+            std::cerr << "File no Found: " << file << '\n';
+            return;
+        }
+        else
+            throw std::runtime_error ("File - " + file + " not found.");
     }
+    
 
     
 
