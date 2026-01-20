@@ -137,7 +137,7 @@ void GrepEngine::execute(const GrepSettings& settings)
         size_t totalFiles = settings.fileNames.size();
 
         unsigned int threadCount = getOptimalThreadCount();
-        if (threadCount > totalFiles) threadCount = totalFiles;
+        if (threadCount > totalFiles) threadCount = static_cast<unsigned int>(totalFiles);
         
         std::vector<std::thread> workers;
         size_t chunkSize = totalFiles / threadCount;
