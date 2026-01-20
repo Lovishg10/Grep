@@ -130,29 +130,6 @@ void GrepEngine::execute(const GrepSettings& settings)
     }
     else
     {
-        try 
-        {
-            // changing the current dicrectory to its parent to easily access demo.txt files
-            // Check if folder exists in current dir first, if not, try parent
-            if (fs::exists("Demo_Files")) 
-            {
-                fs::current_path("Demo_Files");
-    
-            } else if (fs::exists(fs::path("..") / "Demo_Files")) 
-            {
-                fs::current_path(fs::path("..") / "Demo_Files");
-            }
-    
-            fs::current_path(fs::path("..") / "Demo_Files");
-            safePrint("Changed to parent directory: " + fs::current_path().string() + "\n");
-            // std::cout << "Changed to parent directory: " << fs::current_path() << std::endl;
-    
-        } catch (fs::filesystem_error const& ex) 
-        {
-            std::cerr << "Error changing directory: " << ex.what() << std::endl;
-            std::exit(1);
-        }
-
         const auto& files = settings.fileNames;
 
         size_t totalFiles = settings.fileNames.size();
